@@ -58,7 +58,7 @@ for (( VARIABLE=0; VARIABLE<NFRAMES; VARIABLE++ ))
 done
 
 # Merge thumbnails into tile image
-ffmpeg -pattern_type glob -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}output.png
+ffmpeg -pattern_type glob -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}tiled.png
 
 # Output metadata to file
 echo "Filename:   $INPUT" >>${TMPDIR}metadata.txt
@@ -67,17 +67,17 @@ echo "Filesize:   $FILESIZE Mb" >>${TMPDIR}metadata.txt
 echo "Duration:   $DURX" >>${TMPDIR}metadata.txt
 
 # Get dimensions of tile image
-thewidth=$(ffmpeg -i ${TMPDIR}output.png 2>&1 |grep Video|awk '{ split( $6, pieces,  /[x,]/ ) ; print pieces[1] }')
-theheight=$(ffmpeg -i ${TMPDIR}output.png 2>&1 |grep Video|awk '{ split( $6, pieces,  /[x,]/ ) ; print pieces[2] }')
+thewidth=$(ffmpeg -i ${TMPDIR}tiled.png 2>&1 |grep Video|awk '{ split( $6, pieces,  /[x,]/ ) ; print pieces[1] }')
+theheight=$(ffmpeg -i ${TMPDIR}tiled.png 2>&1 |grep Video|awk '{ split( $6, pieces,  /[x,]/ ) ; print pieces[2] }')
 
 # Redefine height & scale (according to $SIZE)
 scaledheight=$(echo "scale=0;$theheight*$SIZE/$thewidth" | bc)
-ffmpeg -i ${TMPDIR}output.png -vf scale=${SIZE}x${scaledheight} -vframes 1 ${TMPDIR}th.png
+ffmpeg -i ${TMPDIR}tiled.png -vf scale=${SIZE}x${scaledheight} -vframes 1 ${TMPDIR}tiled_resized.png
 
 # Add space to the top of the image
 finalheight=$(echo "$scaledheight+$METADATA_PX" | bc)
 
 # Add Metadata
-ffmpeg -f lavfi -i color=black:${SIZE}x${finalheight} -i ${TMPDIR}th.png \
+ffmpeg -f lavfi -i color=0x282828:${SIZE}x${finalheight} -i ${TMPDIR}tiled_resized.png \
 -filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=$FONT:fontsize=20:fontcolor=0xEEEEEE:line_spacing=5:x=12:y=12:textfile=${TMPDIR}metadata.txt" \
 -vframes 1 th${RANDOM}.png
