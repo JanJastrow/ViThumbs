@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	echo "usage: ./thumbgen.sh INPUT [COLUMNS=5] [ROWS=5] [SIZE=1600]"
+	echo "usage: ./vithumbs.sh INPUT [COLUMNS=5] [ROWS=5] [SIZE=1600]"
 	exit
 fi
 

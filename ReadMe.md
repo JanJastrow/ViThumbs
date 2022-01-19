@@ -1,6 +1,6 @@
-# thumbnails
+# ViThumbs
 
-Create "video thumbnail collection" with metadata
+Create tiled video thumbnail images with metadata
 
 ## About
 
