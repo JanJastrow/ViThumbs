@@ -61,10 +61,10 @@ done
 ffmpeg -pattern_type glob -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}tiled.png
 
 # Output metadata to file
-echo "Filename:   $INPUT" >>${TMPDIR}metadata.txt
-echo "Resolution: $RES" >>${TMPDIR}metadata.txt
-echo "Filesize:   $FILESIZE Mb" >>${TMPDIR}metadata.txt
+echo "File Name:  $INPUT" >>${TMPDIR}metadata.txt
+echo "File Size:  $FILESIZE MByte" >>${TMPDIR}metadata.txt
 echo "Duration:   $DURX" >>${TMPDIR}metadata.txt
+echo "Resolution: $RES" >>${TMPDIR}metadata.txt
 
 # Get dimensions of tile image
 thewidth=$(ffmpeg -i ${TMPDIR}tiled.png 2>&1 |grep Video|awk '{ split( $6, pieces,  /[x,]/ ) ; print pieces[1] }')
