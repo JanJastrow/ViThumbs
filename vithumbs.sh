@@ -26,6 +26,7 @@ else
 	FONT="fontfile=$FONTFILE"
 fi
 
+FFMPEG_VERBOSITY="-hide_banner -loglevel error"
 NFRAMES=$(echo "scale=0;$COLS*$ROWS" | bc)
 DURX=$(ffmpeg -i "$INPUT" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
 DURATION=$(ffmpeg -i "$INPUT" 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
@@ -40,13 +41,13 @@ for (( VARIABLE=0; VARIABLE<NFRAMES; VARIABLE++ ))
 	OFFSET=$(echo "scale=2;$VARIABLE*$DURATION/$NFRAMES+$DURATION/$NFRAMES/2" | bc)
 
 	# Create thumbnails
-	ffmpeg -start_at_zero -copyts -ss $OFFSET -i "$INPUT" \
+	ffmpeg -start_at_zero -copyts -ss $OFFSET $FFMPEG_VERBOSITY -i "$INPUT" \
 	-vf "drawtext=$FONT:fontsize=60:fontcolor=0xEEEEEE::shadowcolor=0x111111:shadowx=2:shadowy=2:x=(W-tw)/40:y=H-th-20:text='%{pts\:gmtime\:0\:%H\\\\\\:%M\\\\\:%S}'" \
 	-vframes 1 ${TMPDIR}$(printf "%04d" $VARIABLE).png
 done
 
 # Merge thumbnails into tile image
-ffmpeg -pattern_type glob -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}tiled.png
+ffmpeg -pattern_type glob $FFMPEG_VERBOSITY -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}tiled.png
 
 # Output metadata to file
 echo "File Name:  $INPUT" >>${TMPDIR}metadata.txt
@@ -60,13 +61,13 @@ theheight=$(ffmpeg -i ${TMPDIR}tiled.png 2>&1 |grep Video|awk '{ split( $6, piec
 
 # Redefine height & scale (according to $SIZE)
 scaledheight=$(echo "scale=0;$theheight*$SIZE/$thewidth" | bc)
-ffmpeg -i ${TMPDIR}tiled.png -vf scale=${SIZE}x${scaledheight} -vframes 1 ${TMPDIR}tiled_resized.png
+ffmpeg $FFMPEG_VERBOSITY -i ${TMPDIR}tiled.png -vf scale=${SIZE}x${scaledheight} -vframes 1 ${TMPDIR}tiled_resized.png
 
 # Add space to the top of the image
 finalheight=$(echo "$scaledheight+$METADATA_PX" | bc)
 
 # Add Metadata
-ffmpeg -f lavfi -i color=0x282828:${SIZE}x${finalheight} -i ${TMPDIR}tiled_resized.png \
+ffmpeg -f lavfi -i color=0x282828:${SIZE}x${finalheight} $FFMPEG_VERBOSITY -i ${TMPDIR}tiled_resized.png \
 -filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=$FONT:fontsize=20:fontcolor=0xEEEEEE:line_spacing=5:x=12:y=12:textfile=${TMPDIR}metadata.txt" \
 -vframes 1 -q:v 2 "${INPUT}_vithumbs.jpg"
 
