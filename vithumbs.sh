@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z "$1" ]; then
 	echo "usage: ./vithumbs.sh INPUT [COLS=5] [ROWS=5] [SIZE=1600]"
