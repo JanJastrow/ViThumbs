@@ -31,7 +31,7 @@ DURX=$(ffmpeg -i "$INPUT" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
 DURATION=$(ffmpeg -i "$INPUT" 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
 RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$INPUT")
 FILESIZE=$(du -sm "$INPUT" | awk '{print $1}')
-METADATA_PX=90
+METADATA_PX=110
 TMPDIR="/tmp/thumbnails-${RANDOM}/"
 mkdir $TMPDIR
 
