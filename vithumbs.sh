@@ -39,22 +39,10 @@ for (( VARIABLE=0; VARIABLE<NFRAMES; VARIABLE++ ))
 	do
 	OFFSET=$(echo "scale=2;$VARIABLE*$DURATION/$NFRAMES+$DURATION/$NFRAMES/2" | bc)
 
-	if [ $VARIABLE -gt 9 ];then
-		ZEROS="00"
-			if [ $VARIABLE -gt 99 ];then
-			ZEROS="0"
-				if  [ $VARIABLE -gt 999 ];then
-				ZEROS=""
-			fi
-		fi
-	else
-		ZEROS="000"
-	fi
-
 	# Create thumbnails
 	ffmpeg -start_at_zero -copyts -ss $OFFSET -i "$INPUT" \
 	-vf "drawtext=$FONT:fontsize=60:fontcolor=0xEEEEEE::shadowcolor=0x111111:shadowx=2:shadowy=2:x=(W-tw)/40:y=H-th-20:text='%{pts\:gmtime\:0\:%H\\\\\\:%M\\\\\:%S}'" \
-	-vframes 1 ${TMPDIR}$ZEROS$VARIABLE.png
+	-vframes 1 ${TMPDIR}$(printf "%04d" $VARIABLE).png
 done
 
 # Merge thumbnails into tile image
