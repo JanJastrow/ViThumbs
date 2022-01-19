@@ -19,12 +19,18 @@ SIZE=$4
 if [ -z "$SIZE" ]; then
 	SIZE=1600
 fi
+FONTFILE=""
+if [ -z "$FONTFILE" ]; then
+	FONT="font=Mono"
+else
+	FONT="fontfile=$FONTFILE"
+fi
+
 NFRAMES=$(echo "scale=0;$COLS*$ROWS" | bc)
 DURX=$(ffmpeg -i "$INPUT" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
 DURATION=$(ffmpeg -i "$INPUT" 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
 RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$INPUT")
 FILESIZE=$(du -sm "$INPUT" | awk '{print $1}')
-FONT="/System/Library/Fonts/Supplemental/PTMono.ttc"
 METADATA_PX=90
 TMPDIR="/tmp/thumbnails-${RANDOM}/"
 mkdir $TMPDIR
@@ -46,7 +52,7 @@ for (( VARIABLE=0; VARIABLE<NFRAMES; VARIABLE++ ))
 	fi
 
 	# Create thumbnails
-	ffmpeg -start_at_zero -copyts -ss $OFFSET -i "$INPUT" -vf "drawtext=fontfile=$FONT:fontsize=45:fontcolor=white::shadowcolor=black:shadowx=2:shadowy=2:box=1:boxcolor=black@0:x=(W-tw)/40:y=H-th-20:text='%{pts\:gmtime\:0\:%H\\\\\\:%M\\\\\:%S}'" -vframes 1 ${TMPDIR}$ZEROS$VARIABLE.png
+	ffmpeg -start_at_zero -copyts -ss $OFFSET -i "$INPUT" -vf "drawtext=$FONT:fontsize=45:fontcolor=white::shadowcolor=black:shadowx=2:shadowy=2:box=1:boxcolor=black@0:x=(W-tw)/40:y=H-th-20:text='%{pts\:gmtime\:0\:%H\\\\\\:%M\\\\\:%S}'" -vframes 1 ${TMPDIR}$ZEROS$VARIABLE.png
 done
 
 # Merge thumbnails into tile image
@@ -71,5 +77,5 @@ finalheight=$(echo "$scaledheight+$METADATA_PX" | bc)
 
 # Add Metadata
 ffmpeg -f lavfi -i color=black:${SIZE}x${finalheight} -i ${TMPDIR}th.png \
--filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=fontfile=$FONT:fontsize=20:fontcolor=white:x=10:y=10:textfile=${TMPDIR}metadata.txt" \
+-filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=$FONT:fontsize=20:fontcolor=white:x=10:y=10:textfile=${TMPDIR}metadata.txt" \
 -vframes 1 th${RANDOM}.png
