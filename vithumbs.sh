@@ -81,3 +81,6 @@ finalheight=$(echo "$scaledheight+$METADATA_PX" | bc)
 ffmpeg -f lavfi -i color=0x282828:${SIZE}x${finalheight} -i ${TMPDIR}tiled_resized.png \
 -filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=$FONT:fontsize=20:fontcolor=0xEEEEEE:line_spacing=5:x=12:y=12:textfile=${TMPDIR}metadata.txt" \
 -vframes 1 th${RANDOM}.png
+
+# Clean tempfiles
+rm -r $TMPDIR
