@@ -52,11 +52,13 @@ for (( VARIABLE=0; VARIABLE<NFRAMES; VARIABLE++ ))
 	fi
 
 	# Create thumbnails
-	ffmpeg -start_at_zero -copyts -ss $OFFSET -i "$INPUT" -vf "drawtext=$FONT:fontsize=45:fontcolor=white::shadowcolor=black:shadowx=2:shadowy=2:box=1:boxcolor=black@0:x=(W-tw)/40:y=H-th-20:text='%{pts\:gmtime\:0\:%H\\\\\\:%M\\\\\:%S}'" -vframes 1 ${TMPDIR}$ZEROS$VARIABLE.png
+	ffmpeg -start_at_zero -copyts -ss $OFFSET -i "$INPUT" \
+	-vf "drawtext=$FONT:fontsize=60:fontcolor=0xEEEEEE::shadowcolor=0x111111:shadowx=2:shadowy=2:x=(W-tw)/40:y=H-th-20:text='%{pts\:gmtime\:0\:%H\\\\\\:%M\\\\\:%S}'" \
+	-vframes 1 ${TMPDIR}$ZEROS$VARIABLE.png
 done
 
 # Merge thumbnails into tile image
-ffmpeg -pattern_type glob -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=4:padding=4:color=white ${TMPDIR}output.png
+ffmpeg -pattern_type glob -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}output.png
 
 # Output metadata to file
 echo "Filename:   $INPUT" >>${TMPDIR}metadata.txt
@@ -77,5 +79,5 @@ finalheight=$(echo "$scaledheight+$METADATA_PX" | bc)
 
 # Add Metadata
 ffmpeg -f lavfi -i color=black:${SIZE}x${finalheight} -i ${TMPDIR}th.png \
--filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=$FONT:fontsize=20:fontcolor=white:x=10:y=10:textfile=${TMPDIR}metadata.txt" \
+-filter_complex "[0:v][1:v] overlay=0:$METADATA_PX,drawtext=$FONT:fontsize=20:fontcolor=0xEEEEEE:line_spacing=5:x=12:y=12:textfile=${TMPDIR}metadata.txt" \
 -vframes 1 th${RANDOM}.png
