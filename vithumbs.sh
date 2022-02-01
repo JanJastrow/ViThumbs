@@ -45,6 +45,7 @@ TMPDIR="/tmp/thumbnails-${RANDOM}/"
 
 mkdir $TMPDIR
 
+echo "Extracting thumbnails…"
 for (( VARIABLE=0; VARIABLE<NFRAMES; VARIABLE++ ))
 	do
 	OFFSET=$(echo "scale=2;$VARIABLE*$DURATION/$NFRAMES+$DURATION/$NFRAMES/2" | bc)
@@ -75,10 +76,14 @@ ffmpeg $FFMPEG_VERBOSITY -i ${TMPDIR}tiled.png -vf scale=${SIZE}x${scaledheight}
 # Add space to the top of the image
 finalheight=$(echo "$scaledheight+$INFO_HEIGHT" | bc)
 
+echo "Merging thumbnails and adding meta data…"
+
 # Add Metadata
 ffmpeg -f lavfi -i color=$INFO_BGCOLOR:${SIZE}x${finalheight} $FFMPEG_VERBOSITY -i ${TMPDIR}tiled_resized.png \
 -filter_complex "[0:v][1:v] overlay=0:$INFO_HEIGHT,drawtext=$FONT:fontsize=$INFO_FONTSIZE:fontcolor=$INFO_TEXTCOLOR:line_spacing=$INFO_LINESPACING:x=12:y=12:textfile=${TMPDIR}metadata.txt" \
--vframes 1 -q:v 2 "${INPUT}_vithumbs.jpg"
+-vframes 1 -q:v 2 "${INPUT}${FILE_SUFFIX}.jpg"
+
+echo "Done ✅"
 
 # Clean tempfiles
 rm -r $TMPDIR
