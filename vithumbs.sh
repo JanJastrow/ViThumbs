@@ -26,6 +26,8 @@ if [ -z "$SIZE" ]; then
 	SIZE=1600
 fi
 
+FILE_SUFFIX="_thumbs"
+
 # Design variables
 INFO_TEXTCOLOR="0xEEEEEE"
 INFO_BGCOLOR="0x282828"
