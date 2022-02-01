@@ -7,6 +7,12 @@ fi
 
 # Input variables
 INPUT=$1
+
+if [ ! -f "$INPUT" ]; then
+	echo "File not found."
+	exit 1
+fi
+
 COLS=$2
 if [ -z "$COLS" ]; then
 	COLS=5
