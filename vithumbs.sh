@@ -33,7 +33,7 @@ INFO_TEXTCOLOR="0xEEEEEE"
 INFO_BGCOLOR="0x282828"
 INFO_FONTSIZE=20
 INFO_LINESPACING=5
-INFO_HEIGHT=110
+INFO_HEIGHT=130
 FONTFILE=""
 
 # Render text in system monospace font if no other is defined
@@ -45,12 +45,21 @@ fi
 
 FFMPEG_VERBOSITY="-hide_banner -loglevel error"
 NFRAMES=$(echo "scale=0;$COLS*$ROWS" | bc)
-DURX=$(ffmpeg -i "$INPUT" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
 DURATION=$(ffmpeg -i "$INPUT" 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
-RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$INPUT")
+DURX=$(ffmpeg -i "$INPUT" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
 FILESIZE=$(du -sm "$INPUT" | awk '{print $1}')
-TMPDIR="/tmp/thumbnails-${RANDOM}/"
+VIDEO_RES=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$INPUT")
+VIDEO_FPS=$(echo "scale=2; $(ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "$INPUT")" | bc)
+VIDEO_CODEC=$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+VIDEO_AR=$(ffprobe -v error -select_streams v:0 -show_entries stream=display_aspect_ratio -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+VIDEO_BITRATE=$(echo $(ffprobe -v error -select_streams v:0 -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 "$INPUT") / 1000 | bc)
+AUDIO_CODEC=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+AUDIO_CODEC_TAG=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+AUDIO_SAMPLERATE=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+AUDIO_BITRATE=$(echo $(ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 "$INPUT") / 1000 | bc)
+AUDIO_CHANNELS=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$INPUT")
 
+TMPDIR="/tmp/thumbnails-${RANDOM}/"
 mkdir $TMPDIR
 
 echo "Extracting thumbnails…"
@@ -68,10 +77,11 @@ done
 ffmpeg -pattern_type glob $FFMPEG_VERBOSITY -i "${TMPDIR}*.png" -filter_complex tile=${COLS}x${ROWS}:margin=5:padding=5:color=white ${TMPDIR}tiled.png
 
 # Output metadata to file
-echo "File Name:  $INPUT" >>${TMPDIR}metadata.txt
-echo "File Size:  $FILESIZE MByte" >>${TMPDIR}metadata.txt
-echo "Duration:   $DURX" >>${TMPDIR}metadata.txt
-echo "Resolution: $RES" >>${TMPDIR}metadata.txt
+echo "File Name: $INPUT" >>${TMPDIR}metadata.txt
+echo "File Size: $FILESIZE MByte" >>${TMPDIR}metadata.txt
+echo "Duration:  $DURX" >>${TMPDIR}metadata.txt
+echo "Video:     $VIDEO_RES ($VIDEO_AR) • $VIDEO_BITRATE kbps • $VIDEO_CODEC • $VIDEO_FPS fps" >>${TMPDIR}metadata.txt
+echo "Audio:     $AUDIO_CODEC/$AUDIO_CODEC_TAG • $AUDIO_SAMPLERATE kHz • $AUDIO_BITRATE kbps • $AUDIO_CHANNELS channel" >>${TMPDIR}metadata.txt
 
 # Get dimensions of tile image
 thewidth=$(ffmpeg -i ${TMPDIR}tiled.png 2>&1 |grep Video|awk '{ split( $6, pieces,  /[x,]/ ) ; print pieces[1] }')
