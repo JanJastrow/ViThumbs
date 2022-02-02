@@ -16,6 +16,7 @@ Example generated from [Spring](https://studio.blender.org/films/spring/) by Ble
 
 ## Requirements
 - [FFmpeg](https://www.ffmpeg.org/)
+- [FFprobe] (comes with FFmpeg)
 
 ## Sources
 - [Original gist](https://gist.github.com/zmwangx/11275000)
