@@ -11,7 +11,7 @@ Instead I found a zsh/bash script from [@zmwangx](https://github.com/zmwangx) an
 Since I'm no expert in FFmpeg nor shell scripting I had some trouble adapting the script to my needs initially, but improved eventually.
 
 ## Example
-![Example image generated from "Spring"](https://datenkeller.ministeriumfuerinternet.de/projects/Spring%20-%20Blender%20Open%20Movie.mp4_vithumbs.jpg)
+![Example image generated from "Spring"](https://datenkeller.ministeriumfuerinternet.de/projects/Spring%20-%20Blender%20Open%20Movie.mp4_thumbs.jpg)
 Example generated from [Spring](https://studio.blender.org/films/spring/) by Blender Studio
 
 ## Requirements
